@@ -1,7 +1,7 @@
 
 
 Kernel level programming, Implemented -> Demand Paging, reader writer locks, priority Inheretence, Linux like scheduler
-lab0 -
+ -
 
 The objective of this introductory lab is to familiarize you with the process of compiling and running XINU, the tools involved, and the run-time environment and segment layout.
 PA1 (Linux like Scheduler) -
