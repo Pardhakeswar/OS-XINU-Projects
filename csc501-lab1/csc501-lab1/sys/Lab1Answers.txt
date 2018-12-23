@@ -1,0 +1,50 @@
+1.What are the advantages and disadvantages of each of the two scheduling policies? Also, give the advantages and disadvantages of the round robin scheduling policy originally implemented in Xinu.
+
+
+=============================================Default roundrobin scheduler=================
+
+Advantages:
+
+1.There is no overhead involved in selecting a process for rescheduling . 
+
+Disadvanatges:
+
+1.In the default scheduler low priority process may face starvation if there are any high priority process in the queue.The below two
+schedulers overcomes the starvation problem.
+
+================================Exponential distributed  scheduler====================
+
+Advantages :
+
+1.Removes the problem of starvaion of lower process by choosing them based on the random value generated 
+
+Disadvantages:
+
+1. There is overhead involved in selecting the process based on random value.
+2. As the scheduling is randomized, it is based on the lambda value.
+3. As observed from the result, the lower priority gets more chances in the exponential distribution
+when compared to the higher priority ones which should get more chances.
+   
+
+===============================Linux based scheduler =======================
+
+Advantages :
+
+1. Removes the problem of starvation for lower priority pocess by giving them a chance to execute in each epoch.
+2. Also takes into consoderation the remaining time and allow a process to carry forward the qunatum for the next epoch if it gets suspended in current
+epoch.
+3. As this is based on goodness value, highest ones are followed by the lower priority ones.
+
+
+
+Disadvantages:
+
+1.There is overhead involved in selecting the max goodness value process. 
+2.The highest priority ones should wait for one epoch inorder to get a chance to execute again.
+
+
+
+
+Describe the way each of the schedulers affects the NULL process.
+
+In All the above schedulers NULLPROCESS  comes into picture only when there are no other process in the ready queue.

@@ -1,0 +1,144 @@
+(1) The priority inversion problem could cause that a higher-priority process needs to wait for the completion of a lower-priority process.
+
+Another approach in addition to priority inheritance is Random Boosting
+
+Random boosting is a strategy used by the scheduler in Microsoft Windows to avoid deadlock due to priority inversion. Ready threads holding locks are randomly boosted in priority and allowed to run long enough to exit the critical section. If the thread doesn't get enough time torelease the lock, it will get another chance.
+
+The above data is taken from the source :
+
+https://en.wikipedia.org/wiki/Random_boosting 
+
+There are also other approaches which deal with priority inversion issue 
+
+Priority ceiling protocol:
+
+The priority ceiling protocol is a synchronization protocol for shared resources to avoid unbounded priority inversion and mutual deadlock due to wrong nesting of critical sections. In this protocol each resource is assigned a priority ceiling, which is a priority equal to the highest priority of any task which may lock the resource.
+
+There are two types of varaints in Priority cieling protocol 
+1)Original Ceiling Priority Protocol (OCPP) :In OCPP, a task X's priority is raised when a higher-priority task Y tries to acquire a resource that X has locked.
+
+2)Immediate Ceiling Priority Protocol (ICPP):In ICPP, a task's priority is immediately raised when it locks a resource.
+
+
+
+The link for the above source has been refered from :
+
+https://en.wikipedia.org/wiki/Priority_ceiling_protocol
+
+
+
+(2) test case to differentiate between the XINU(semaphore implementaion version )
+lock implementation(that has been implemented in this assignment) version which has been mentioned in task1.c file
+
+Here in this test case 3 process have been taken and their priorities are
+A --25
+B --30
+C --35
+
+Using the locks where the priority inhereitance has been implemented 
+B shouldnt be able to interrupt A as A inherits the C priority 
+when C is waiting for Lock acquired by A.
+
+In the implementation using semaphores Where the inheritance protocol hasnt been 
+implemented when B comes B will be able to interrupt A, As A priority(25) is less than that
+of B priority (30)
+In the latter case B executes before C even though B has less priority than C(which has been blocked by lock from A )  
+
+
+=========Results of test case ======================
+
+ Testing inversion using locks 
+  A: to acquire lock
+  A: acquired lock 
+  A: to release lock
+  C: to acquire lock
+  C: acquired lock 
+  C: to release lock
+B is not able to interrupt due to priority inheritance 
+B is done.
+output=AACCBB
+Implementation using Locks completed
+
+B is getting executed after C when implemented using locks
+
+
+ Inveriosn Using semaphores  
+A: Requesting the semaphore, sleep 2s
+A: acquired the (semaphore), sleep 2s
+C: Requesting the semaphore, sleep 2s
+B is able to interrupt 
+B is done.
+A: to release semaphore
+C: acquired the (semaphore), sleep 2s
+C: to release semaphore
+output=ABBACC
+Implementation using semaphores completed 
+
+B is able to execute before C even though B has less priority than C
+
+
+
+
+(2) Task 2 Synchronisation issue:
+
+As the lock is a reader lock more than one reader an acquire it 
+More than one Thread can enter into the try_update() function.
+
+In the try_update function():
+-->There is a critical section present  "buffer_add (&global_buf, bufstr, szlen)" surrounded by global_semaphore.
+
+--->As this section is entered by acquiring a semaphore which has a count of 10 which 
+implies atmax 10 threads can be in the critical section by acquring the semaphore variable "global_semaphore"
+
+--->consider two threads T1 ad T2 which entered the buffer_add() function
+
+========== critical section area ==============
+
+buffer_add (buffer_t *buf, const char *txt, int size)
+{
+    int free = buf->size - buf->len;		// l1
+    if (size <= 0)				// l2
+        return OK;				// l3
+    if ( free < (size+1)) {			// l4
+            return ERROR;			// l5
+    }
+    memcpy (buf->buf + buf->len, txt, size);	// l6
+    buf->len += size;				// l7
+    buf->buf[buf->len] = '\0';			// l8
+
+    return OK;					// l9
+}
+
+Consider a scenario of two threads:
+
+
+	Thread 1:							Thread 2:
+
+
+Executes upto l6(memcpy)
+l7 didnt get executed  			
+so the buf->len hasnt been updated and stored in memory
+In the mean while Thread 1 got interrupted and 
+
+CPU Switches to Thread 2					
+
+								As the buf->len didnt get updated by previous Thread 1
+								It also starts copying from same point where T1 has done										                and overwrites the data written by Thread 1 and
+                                                                the buf array becomes inconsistent and it updates buf->len variable            
+
+                                                                Interrupted and switches to Thread 1
+
+
+
+Return from Thread 2:
+
+l7 gets executed and the buf->len
+value may go beyond the max size allocated size for buffer
+and which results in errneous values while it gets accesed.
+
+
+
+
+In this scenario when multiple thread are updating a global variable, if threads interleave before updating any value (storing it to memory location)
+which results in data inconsistencies and output varies from time to time 
+if multiple threads are allowed to access a resource, this results in race conditions. 
